@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Довідник КУпАП — Патрульна поліція</title>
+    <!-- Tailwind CSS CDN для сучасного стильного інтерфейсу -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        police: {
+                            50: '#f0f4f9',
+                            100: '#d9e2ec',
+                            500: '#1b3a6b',
+                            700: '#0f2444',
+                            800: '#0a1931',
+                            900: '#060d1a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .badge { @apply text-xs font-semibold px-2 py-0.5 rounded-full; }
+        .tab-active { @apply border-b-2 border-blue-600 text-blue-600 font-bold dark:border-blue-400 dark:text-blue-400; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+
+    <!-- Верхня панель навігації -->
+    <header class="bg-police-800 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-shield-halved text-yellow-400 text-2xl"></i>
+                <div>
+                    <h1 class="font-bold text-lg md:text-xl leading-tight">Е-Довідник КУпАП</h1>
+                    <p class="text-xs text-blue-200">Швидка кваліфікація та процесуальні строки</p>
+                </div>
+            </div>
+            <button id="themeToggle" class="p-2 rounded-lg bg-police-700 hover:bg-police-500 transition text-yellow-300">
+                <i class="fa-solid fa-moon text-lg" id="themeIcon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Основний контент -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-5">
+        
+        <!-- Вкладки розділів -->
+        <div class="flex border-b border-gray-300 dark:border-gray-700 mb-5">
+            <button id="tabOffensesBtn" onclick="switchTab('offenses')" class="py-2.5 px-4 text-sm md:text-base font-medium flex items-center gap-2 tab-active transition">
+                <i class="fa-solid fa-scale-balanced"></i> Правопорушення (Особлива ч.)
+            </button>
+            <button id="tabGeneralBtn" onclick="switchTab('general')" class="py-2.5 px-4 text-sm md:text-base font-medium flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 transition">
+                <i class="fa-solid fa-book-open"></i> Загальна частина та Процес
+            </button>
+        </div>
+
+        <!-- ================= РОЗДІЛ 1: ОСОБЛИВА ЧАСТИНА ================= -->
+        <div id="sectionOffenses">
+            <!-- Пошук та фільтри -->
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow mb-5 space-y-3">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400"></i>
+                    <input type="text" id="offenseSearch" onkeyup="filterOffenses()" placeholder="Пошук статті (напр., 173, наркотики, хуліганство, суд, штраф)..." 
+                           class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="flex flex-wrap gap-2 text-xs md:text-sm">
+                    <button onclick="setFilter('all')" class="filter-btn px-3 py-1.5 rounded-md bg-blue-600 text-white font-medium">Всі</button>
+                    <button onclick="setFilter('detention')" class="filter-btn px-3 py-1.5 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300">Затримання (ст. 262)</button>
+                    <button onclick="setFilter('court')" class="filter-btn px-3 py-1.5 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300">Суд</button>
+                    <button onclick="setFilter('commission')" class="filter-btn px-3 py-1.5 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300">Адмінкомісія</button>
+                    <button onclick="setFilter('presence')" class="filter-btn px-3 py-1.5 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300">Обов'язкова присутність (ст. 268)</button>
+                </div>
+            </div>
+
+            <!-- Лічильник результатів -->
+            <div class="mb-3 text-xs text-gray-500 dark:text-gray-400 flex justify-between items-center">
+                <span>Знайдено статей: <strong id="offenseCount" class="text-blue-600 dark:text-blue-400">0</strong></span>
+                <span class="text-[11px] italic">* Зелений щит: можливе адмінзатримання</span>
+            </div>
+
+            <!-- Список карток правопорушень -->
+            <div id="offensesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Картки генеруються за допомогою JS -->
+            </div>
+        </div>
+
+        <!-- ================= РОЗДІЛ 2: ЗАГАЛЬНА ТА ПРОЦЕСУАЛЬНА ЧАСТИНА ================= -->
+        <div id="sectionGeneral" class="hidden">
+            <!-- Пошук у загальних статтях -->
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow mb-5">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400"></i>
+                    <input type="text" id="generalSearch" onkeyup="filterGeneral()" placeholder="Пошук процесуальної статті (напр., 38 строки, 260 заходи, 263 затримання)..." 
+                           class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- Список карток процесу -->
+            <div id="generalGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Картки генеруються через JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-police-900 text-gray-400 text-xs py-4 text-center border-t border-gray-800">
+        <p>Шпаргалка патрульного поліцейського України • Згенеровано згідно з матеріалами КУпАП</p>
+    </footer>
+
+    <!-- Скрипти та База Даних -->
+    <script>
+        // База даних Особливої частини (з файлу)
+        const offensesData = [
+            { article: "44", part: "1", fabula: "Незаконне виробництво, придбання, зберігання, перевезення, пересилання наркотичних засобів або психотропних речовин без мети збуту в невеликих розмірах", protocol: true, postanova: false, detention: true, judge: "Суд", term: "1 доба", presence: true, sanction: "Штраф 25-50 н.м.д.г., або гром. роботи 20-60 год, або адмінарешт до 15 діб." },
+            { article: "44", part: "2", fabula: "Добровільна здача наркотичних засобів або психотропних речовин", protocol: false, postanova: false, detention: false, judge: "-", term: "-", presence: false, sanction: "Особа звільняється від адміністративної відповідальності." },
+            { article: "44-1", part: "1", fabula: "Ухилення особи, хворої на наркоманію, від медичного огляду на стан наркотичного сп'яніння", protocol: true, postanova: false, detention: false, judge: "Суд", term: "1 доба", presence: false, sanction: "Штраф 10-25 н.м.д.г." },
+            { article: "44-1", part: "2", fabula: "Ухилення особи, яка зловживає наркотичними засобами, від медичного обстеження", protocol: true, postanova: false, detention: false, judge: "Суд", term: "1 доба", presence: false, sanction: "Штраф 25-50 н.м.д.г." },
+            { article: "44-3", part: "1", fabula: "Порушення правил щодо карантину людей", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф 1000-2000 н.м.д.г." },
+            { article: "44-3", part: "2", fabula: "Перебування в громадських будинках, спорудах, транспорті під час карантину без респіратора або захисної маски", protocol: false, postanova: true, detention: false, judge: "Поліція", term: "На місці", presence: false, sanction: "Штраф 10-15 н.м.д.г." },
+            { article: "46-2", part: "", fabula: "Порушення правил заняття народною медициною (цілительством)", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф 50-150 н.м.д.г." },
+            { article: "51", part: "1", fabula: "Дрібне викрадення чужого майна шляхом крадіжки, шахрайства, привласнення чи розтрати", protocol: true, postanova: false, detention: true, judge: "Суд", term: "5 діб", presence: true, sanction: "Штраф 10-30 н.м.д.г., або виправні роботи до 1 міс, або арешт 10-15 діб." },
+            { article: "51", part: "2", fabula: "Дрібне викрадення чужого майна, повторне протягом року", protocol: true, postanova: false, detention: true, judge: "Суд", term: "5 діб", presence: true, sanction: "Штраф 30-50 н.м.д.г., або виправні роботи, або арешт 10-15 діб." },
+            { article: "106-2", part: "", fabula: "Незаконний посів або вирощування снотворного маку (до 100 рослин) чи конопель (до 10 рослин)", protocol: true, postanova: false, detention: false, judge: "Суд", term: "1 доба", presence: false, sanction: "Штраф 18-100 н.м.д.г. з конфіскацією незаконно вирощуваних рослин." },
+            { article: "151", part: "", fabula: "Самоправне зайняття жилого приміщення в будинках державного або громадського житлового фонду", protocol: true, postanova: false, detention: false, judge: "Адмінкомісія", term: "15 діб", presence: false, sanction: "Штраф 5-10 н.м.д.г." },
+            { article: "152", part: "", fabula: "Порушення державних стандартів, норм і правил у сфері благоустрою населених пунктів", protocol: true, postanova: false, detention: false, judge: "Адмінкомісія", term: "15 діб", presence: false, sanction: "Штраф на громадян 20-80 н.м.д.г.; на посадових осіб/ФОП 50-100 н.м.д.г." },
+            { article: "152-1", part: "6", fabula: "Паркування ТЗ на місцях для водіїв з інвалідністю на паркінгах (в інших місцях ч.6 ст. 122 КУпАП)", protocol: true, postanova: true, detention: false, judge: "Поліція", term: "На місці", presence: false, sanction: "Штраф 60-100 н.м.д.г." },
+            { article: "154", part: "1", fabula: "Порушення правил тримання собак і котів", protocol: true, postanova: false, detention: false, judge: "Адмінкомісія / Поліція", term: "15 діб", presence: false, sanction: "Попередження або штраф 1-3 н.м.д.г." },
+            { article: "154", part: "2", fabula: "Ті самі дії, що спричинили заподіяння шкоди здоров'ю людей або майну, або повторно", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф 3-5 н.м.д.г. з конфіскацією тварини." },
+            { article: "154", part: "3", fabula: "Не складати (згідно зі спеціальними змінами)!", protocol: true, postanova: false, detention: false, judge: "-", term: "-", presence: false, sanction: "Не застосовувати." },
+            { article: "155", part: "1", fabula: "Порушення правил торгівлі та надання послуг", protocol: true, postanova: false, detention: false, judge: "Адмінкомісія", term: "15 діб", presence: false, sanction: "Штраф 1-10 н.м.д.г." },
+            { article: "155", part: "2", fabula: "Приховування товарів від покупців працівниками торгівлі", protocol: true, postanova: false, detention: false, judge: "Адмінкомісія", term: "15 діб", presence: false, sanction: "Штраф 1-14 н.м.д.г." },
+            { article: "155", part: "3", fabula: "Повторне порушення правил торгівлі протягом року", protocol: true, postanova: false, detention: false, judge: "Адмінкомісія", term: "15 діб", presence: false, sanction: "Штраф 15-27 н.м.д.г." },
+            { article: "156", part: "1", fabula: "Порушення правил торгівлі алкоголем або тютюном (без акцизних марок чи ліцензії) для суб'єктів", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф 200-600 н.м.д.г. з конфіскацією предметів торгівлі." },
+            { article: "156", part: "2", fabula: "Продаж алкогольних або тютюнових виробів неповнолітнім", protocol: true, postanova: false, detention: false, judge: "Адмінкомісія", term: "15 діб", presence: false, sanction: "Штраф 400-800 н.м.д.г." },
+            { article: "156", part: "3", fabula: "Торгівля алкогольними напоями чи тютюном з рук, лотків", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф 400-800 н.м.д.г. з конфіскацією." },
+            { article: "156", part: "4", fabula: "Повторне вчинення дій за ч. 1 або 3 протягом року", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф 800-1400 н.м.д.г. з конфіскацією." },
+            { article: "156-1", part: "2", fabula: "Порушення законодавства про захист прав споживачів", protocol: true, postanova: false, detention: false, judge: "Адмінкомісія", term: "15 діб", presence: false, sanction: "Штраф 1-80 н.м.д.г." },
+            { article: "159", part: "", fabula: "Порушення правил торгівлі на ринках", protocol: true, postanova: false, detention: false, judge: "Адмінкомісія", term: "15 діб", presence: false, sanction: "Штраф 3-7 н.м.д.г." },
+            { article: "160", part: "1", fabula: "Торгівля в містах з рук на вулицях, площах, у дворах, під'їздах, скверах", protocol: true, postanova: false, detention: true, judge: "Суд", term: "3 доби", presence: true, sanction: "Штраф 1-7 н.м.д.г. з конфіскацією або без." },
+            { article: "160", part: "2", fabula: "Торгівля з рук промисловими товарами", protocol: true, postanova: false, detention: true, judge: "Суд", term: "3 доби", presence: true, sanction: "Штраф 6-15 н.м.д.г. з обов'язковою конфіскацією." },
+            { article: "162", part: "", fabula: "Порушення правил про валютні операції", protocol: true, postanova: false, detention: true, judge: "Суд", term: "1 доба", presence: false, sanction: "Штраф 500-1000 н.м.д.г. з конфіскацією валюти." },
+            { article: "173", part: "", fabula: "Дрібне хуліганство: нецензурна лайка в громадських місцях, образливе чіпляння до громадян тощо", protocol: true, postanova: false, detention: true, judge: "Суд (за місцем вчинення)", term: "1 доба", presence: true, sanction: "Штраф 3-7 н.м.д.г., гром. роботи 40-60 год, виправні роботи 1-2 міс, або адмінарешт до 15 діб." },
+            { article: "173-2", part: "1", fabula: "Вчинення домашнього насильства, насильства за ознакою статі, невиконання ТЗП або неповідомлення адреси", protocol: true, postanova: false, detention: true, judge: "Суд (за місцем вчинення)", term: "1 доба", presence: true, sanction: "Штраф 10-20 н.м.д.г., громадські роботи 30-40 год або адмінарешт до 10 діб." },
+            { article: "173-2", part: "2", fabula: "Домашнє насильство, повторне протягом року", protocol: true, postanova: false, detention: true, judge: "Суд", term: "1 доба", presence: true, sanction: "Штраф 20-40 н.м.д.г., гром. роботи 40-60 год або адмінарешт до 15 діб." },
+            { article: "174", part: "", fabula: "Стрільба з вогнепальної, холодної, пневматичної зброї чи пристроїв у населених пунктах", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф 100-150 н.м.д.г. з конфіскацією зброї та боєприпасів." },
+            { article: "175-1", part: "1", fabula: "Куріння тютюнових виробів у місцях, де це заборонено законом або рішенням ради", protocol: true, postanova: true, detention: false, judge: "Адмінкомісія / Поліція", term: "15 діб", presence: false, sanction: "Штраф 3-10 н.м.д.г." },
+            { article: "175-1", part: "2", fabula: "Куріння у заборонених місцях, повторно протягом року", protocol: true, postanova: true, detention: false, judge: "Адмінкомісія / Поліція", term: "15 діб", presence: false, sanction: "Штраф 10-20 н.м.д.г." },
+            { article: "178", part: "1", fabula: "Розпивання алкоголю в заборонених місцях або поява у громадських місцях у п'яному вигляді", protocol: true, postanova: true, detention: true, judge: "Поліція", term: "На місці", presence: false, sanction: "Попередження або штраф 1-5 н.м.д.г." },
+            { article: "178", part: "2", fabula: "Повторне розпивання або поява у п'яному вигляді протягом року", protocol: true, postanova: true, detention: true, judge: "Поліція", term: "На місці", presence: false, sanction: "Штраф 3-7 н.м.д.г." },
+            { article: "178", part: "3", fabula: "Дії особи, яка двічі протягом року піддавалася стягненню за ст. 178", protocol: true, postanova: false, detention: true, judge: "Суд (за місцем проживання чи вчинення)", term: "1 доба", presence: true, sanction: "Штраф 6-8 н.м.д.г., гром. роботи 20-30 год, виправні роботи 1-2 міс або арешт до 15 діб." },
+            { article: "180", part: "", fabula: "Доведення неповнолітнього до стану сп'яніння батьками або іншими особами", protocol: true, postanova: true, detention: false, judge: "Поліція (батьки) / Адмінкомісія (інші)", term: "15 діб", presence: false, sanction: "Штраф 3-8 н.м.д.г." },
+            { article: "180-1", part: "1", fabula: "Порушення порядку перебування дітей у закладах розваг або громадського харчування", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф на посадових осіб 20-50 н.м.д.г." },
+            { article: "180-1", part: "2", fabula: "Повторне порушення порядку перебування дітей у закладах розваг", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф на посадових осіб 50-100 н.м.д.г." },
+            { article: "181", part: "1", fabula: "Участь в азартних іграх (карти, рулетка, наперсток) на гроші чи інші цінності", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Попередження або штраф 3-7 н.м.д.г. з конфіскацією речей." },
+            { article: "181", part: "2", fabula: "Повторна участь в організованих азартних іграх протягом року", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф 7-25 н.м.д.г. з конфіскацією грального приладдя." },
+            { article: "181", part: "4", fabula: "Ворожіння у громадських місцях", protocol: true, postanova: false, detention: false, judge: "Адмінкомісія", term: "15 діб", presence: false, sanction: "Попередження або штраф 3-5 н.м.д.г." },
+            { article: "181-1", part: "1", fabula: "Заняття проституцією", protocol: true, postanova: true, detention: true, judge: "Адмінкомісія", term: "15 діб", presence: false, sanction: "Попередження або штраф 5-10 н.м.д.г." },
+            { article: "181-1", part: "2", fabula: "Повторне заняття проституцією протягом року", protocol: true, postanova: true, detention: true, judge: "Адмінкомісія", term: "15 діб", presence: false, sanction: "Штраф 8-15 н.м.д.г." },
+            { article: "182", part: "1", fabula: "Порушення тиші: 22:00-08:00, ремонтні роботи 21:00-09:00, у вихідні - заборонено шуміти", protocol: true, postanova: true, detention: false, judge: "Адмінкомісія / Поліція", term: "15 діб", presence: false, sanction: "Попередження або штраф 5-15 н.м.д.г. (громадяни); 15-30 н.м.д.г. (посадові особи)." },
+            { article: "182", part: "2", fabula: "Повторне порушення правил додержання тиші протягом року", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф 15-30 н.м.д.г. з конфіскацією звукоапаратури; на ФОП 50-150 н.м.д.г." },
+            { article: "183", part: "", fabula: "Завідомо неправдивий виклик спеціальних служб (пожежної, поліції, швидкої)", protocol: true, postanova: true, detention: false, judge: "Поліція / Адмінкомісія", term: "15 діб", presence: false, sanction: "Штраф 50-200 н.м.д.г. (850-3400 грн)." },
+            { article: "184", part: "1", fabula: "Ухилення батьків від виконання обов'язків щодо виховання, навчання та життя дітей", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Попередження або штраф 50-100 н.м.д.г." },
+            { article: "184", part: "3", fabula: "Вчинення неповнолітніми (14-16 років) діяння, передбаченого КУпАП", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф на батьків 50-100 н.м.д.г." },
+            { article: "184", part: "4", fabula: "Вчинення неповнолітніми діянь з ознаками кримінального правопорушення (до віку крим. відпов.)", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф на батьків 100-300 н.м.д.г." },
+            { article: "185", part: "", fabula: "Злісна непокора законному розпорядженню або вимозі поліцейського, військовослужбовця", protocol: true, postanova: false, detention: true, judge: "Суд (за місцем вчинення)", term: "1 доба", presence: true, sanction: "Штраф 8-15 н.м.д.г., гром. роботи 40-60 год, виправні роботи 1-2 міс або арешт до 15 діб." },
+            { article: "185-7", part: "1", fabula: "Публічні заклики до невиконання вимог поліцейського або провокація непокори", protocol: true, postanova: false, detention: true, judge: "Суд (за місцем вчинення)", term: "1 доба", presence: true, sanction: "Штраф 10-20 н.м.д.г. або виправні роботи 1-2 місяці." },
+            { article: "187", part: "1", fabula: "Порушення правил адміністративного нагляду", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: true, sanction: "Штраф 3-10 н.м.д.г." },
+            { article: "187", part: "2", fabula: "Повторне порушення правил адміннагляду протягом року", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: true, sanction: "Штраф 10-15 н.м.д.г., або виправні роботи, або арешт до 15 діб." },
+            { article: "190", part: "1", fabula: "Придбання, зберігання, передача або продаж зброї без дозволу", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф 7-10 н.м.д.г. з конфіскацією зброї або без." },
+            { article: "190", part: "2", fabula: "Повторне порушення порядку обігу зброї протягом року", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф 10-15 н.м.д.г. з конфіскацією зброї." },
+            { article: "191", part: "1", fabula: "Порушення правил зберігання, носіння або перевезення зброї особами з дозволом", protocol: true, postanova: false, detention: false, judge: "Суд / Поліція", term: "15 діб", presence: false, sanction: "Штраф 7-10 н.м.д.г. з оплатним вилученням зброї або без." },
+            { article: "191", part: "2", fabula: "Повторне порушення правил зберігання або носіння зброї протягом року", protocol: true, postanova: false, detention: false, judge: "Суд", term: "15 діб", presence: false, sanction: "Штраф 10-15 н.м.д.г. з обов'язковою конфіскацією." },
+            { article: "192", part: "", fabula: "Порушення строків реєстрації (перереєстрації) зброї або правил взяття на облік", protocol: true, postanova: true, detention: false, judge: "Поліція", term: "15 діб", presence: false, sanction: "Штраф 5-7 н.м.д.г." }
+        ];
+
+        // База даних Загальної та Процесуальної частин
+        const generalData = [
+            { article: "1", title: "Завдання Кодексу України про адмінправопорушення", note: "Охорона прав і свобод громадян, власності, конституційного ладу України, встановленого правопорядку, зміцнення законності, запобігання правопорушенням." },
+            { article: "9", title: "Поняття адміністративного правопорушення", note: "Протиправна, винна (умисна або необережна) дія чи бездіяльність, яка посягає на громадський порядок, власність, права громадян і за яку передбачено відповідальність." },
+            { article: "12", title: "Вік настання адміністративної відповідальності", note: "Адміністративній відповідальності підлягають особи, які досягли на момент вчинення правопорушення 16-річного віку." },
+            { article: "13", title: "Відповідальність неповнолітніх", note: "До осіб 16-18 років застосовуються заходи впливу за ст. 24-1, КРІМ статей: 44, 51, 89, 121-127, 130, 139, 154 ч.3, 156 ч.2, 173, 173-4, 174, 183-1, 185, 190-195 (відповідають як дорослі!)." },
+            { article: "15", title: "Відповідальність військовослужбовців", note: "Несуть відповідальність за дисциплінарними статутами. Але за ПДР, ст. 173-2 (домашнє насильство), ст. 182 (тиша) несуть відповідальність на загальних підставах!" },
+            { article: "16", title: "Відповідальність іноземців та осіб без громадянства", note: "Підлягають відповідальності на загальних підставах. Питання щодо осіб з дипломатичним імунітетом вирішуються дипломатичним шляхом." },
+            { article: "22", title: "Звільнення від відповідальності при малозначності", note: "Орган (посадова особа) може обмежитись усним зауваженням. Заборонено застосовувати при керуванні у стані сп'яніння (ст. 130) та ч.4 ст. 126." },
+            { article: "24", title: "Види адміністративних стягнень", note: "1) Попередження; 2) Штраф; 3) Оплатне вилучення; 4) Конфіскація; 5) Позбавлення спецправа; 5-1) Громадські роботи; 6) Виправні роботи; 6-1) Суспільно корисні роботи; 7) Адмінарешт; 8) Арешт на гауптвахті." },
+            { article: "24-1", title: "Заходи впливу, що застосовуються до неповнолітніх", note: "1) Зобов'язання публічно попросити вибачення; 2) Попередження; 3) Догана або сувора догана; 4) Передача під нагляд батькам або колективу." },
+            { article: "33", title: "Загальні правила накладення стягнення", note: "Враховуються характер правопорушення, особа порушника, ступінь вини, майновий стан, пом'якшуючі та обтяжуючі обставини." },
+            { article: "34", title: "Обставини, що пом'якшують відповідальність", note: "Щире розкаяння; відвернення шкідливих наслідків, добровільне відшкодування; сильне душевне хвилювання; вчинення неповнолітнім; вагітною або матір'ю дитини до 1 року." },
+            { article: "35", title: "Обставини, що обтяжують відповідальність", note: "Продовження протиправної поведінки на вимогу припинити; повторне вчинення протягом року; втягнення неповнолітнього; групою осіб; в умовах стихійного лиха; стан сп'яніння." },
+            { article: "36", title: "Стягнення при вчиненні кількох порушень", note: "Стягнення накладається за кожне правопорушення окремо. Якщо справи розглядаються одночасно одним органом — у межах санкції за більш серйозне правопорушення (постанова об'єднується, протоколи складаються окремо)." },
+            { article: "38", title: "Строки накладення адміністративного стягнення", note: "Поліцейський — 2 місяці з моменту вчинення; Суд — 3 місяці з дня вчинення (або отримання); По ст. 130 — 1 рік." },
+            { article: "221", title: "Розгляд справ судами", note: "Судді районних, міських, міськрайонних судів розглядають найбільш тяжкі правопорушення, правопорушення неповнолітніх та справи, де передбачено позбавлення права, конфіскацію чи адмінарешт." },
+            { article: "222", title: "Розгляд справ Національною поліцією", note: "Органи поліції розглядають справи на місці або у відділі (порушення ПДР, громадського спокою, тиші, правил поводження зі зброєю тощо)." },
+            { article: "247", title: "Обставини, що виключають провадження", note: "1) Відсутність події/складу; 2) Недосягнення 16 років; 3) Неосудність; 4) Крайня необхідність або необхідна оборона; 5) Акт амністії; 6) Скасування акта; 7) Закінчення строків ст. 38; 8) Наявність постанови/вироку за цим фактом; 9) Смерть особи." },
+            { article: "251", title: "Докази у справі", note: "Будь-які фактичні дані: протокол, пояснення порушника, свідків, потерпілих, висновок експерта, техприлади (відеозапис з бодікамер, драгер), речові докази, акт огляду ТЗ." },
+            { article: "252", title: "Оцінка доказів", note: "Докази оцінюються за внутрішнім переконанням, що ґрунтується на всебічному, повному й об'єктивному дослідженні всіх обставин справи в їх сукупності." },
+            { article: "254", title: "Складення протоколу про правопорушення", note: "Складається не пізніше 24 годин з моменту виявлення особи у двох примірниках, один із яких під розписку вручається порушнику." },
+            { article: "258", title: "Випадки, коли протокол не складається", note: "Постанова виноситься відразу на місці: порушення ПДР, куріння у заборонених місцях, розпивання алкоголю в громадських місцях (крім ч.3) тощо." },
+            { article: "259", title: "Доставлення порушника", note: "З метою складення протоколу при неможливості скласти на місці. Порушника може бути доставлено до поліції (про доставлення складається рапорт)." },
+            { article: "260", title: "Заходи забезпечення провадження", note: "Адміністративне затримання особи; особистий огляд і огляд речей; вилучення речей та документів (у т.ч. водійського); тимчасове затримання ТЗ; відсторонення від керування ТЗ та огляд на сп'яніння." },
+            { article: "261", title: "Адміністративне затримання", note: "Обов'язково складається протокол адмінзатримання! Негайно повідомляються родичі та Центр БВПД (безоплатна правова допомога)." },
+            { article: "262", title: "Органи, правомочні затримувати", note: "Поліція має право затримувати за вичерпним переліком статей (44, 51, 173, 173-2, 178, 185 тощо), за іншими статтями — лише за ст. 260 для встановлення особи." },
+            { article: "263", title: "Строки адміністративного затримання", note: "Загальний строк — НЕ БІЛЬШЕ 3 ГОДИН. За правопорушення, пов'язані з наркотичними засобами (ст. 44) — ДО 3 ДІБ з повідомленням прокурора протягом 24 год." },
+            { article: "264", title: "Особистий огляд і огляд речей", note: "Особистий огляд проводиться особою однієї статі з оглядуваним і в присутності двох понятих тієї ж статі. Складається протокол або робиться запис у протоколі про адмінправопорушення чи затримання." },
+            { article: "265-1", title: "Тимчасове вилучення посвідчення водія", note: "Вилучається на строк до рішення суду, але не більше ніж на 3 місяці з видачею тимчасового дозволу. Робиться запис у протоколі." },
+            { article: "265-2", title: "Тимчасове затримання транспортного засобу", note: "Складається акт огляду та тимчасового затримання ТЗ. Здійснюється блокуванням або евакуацією на спецмайданчик, якщо ТЗ суттєво перешкоджає руху або стоїть на місцях для інвалідів." },
+            { article: "266", title: "Огляд водіїв на стан сп'яніння", note: "Поліцейський проводить за допомогою драгера під обов'язковий відеозапис з бодікамери (або за участі 2 свідків). Огляд у медзакладі здійснюється не пізніше 2 годин з моменту встановлення підстав." },
+            { article: "268", title: "Права особи та обов'язкова присутність", note: "Права: знайомитися з матеріалами, давати пояснення, мати адвоката, перекладача, оскаржувати постанову. Обов'язкова присутність за статтями: 44 ч.1, 51, 160, 173, 178 ч.3, 185, 185-7, 187." },
+            { article: "277", title: "Строки розгляду справ", note: "Загальний строк — 15 днів. Протягом доби: ст. 44 ч.1, 44-1, 106-2, 162, 173, 173-2, 178 ч.3, 185, 185-7. У 3-денний строк: ст. 160. У 5-денний строк: ст. 51." },
+            { article: "284", title: "Види постанов по справі", note: "1) Про накладення адмінстягнення; 2) Про застосування заходів впливу до неповнолітніх (ст. 24-1); 3) Про закриття справи." }
+        ];
+
+        let currentFilter = 'all';
+
+        // Рендер карток Особливої частини
+        function renderOffenses(data) {
+            const grid = document.getElementById('offensesGrid');
+            grid.innerHTML = '';
+            document.getElementById('offenseCount').innerText = data.length;
+
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-4 flex flex-col justify-between hover:shadow-lg transition";
+
+                // Бейджі
+                let badges = ``;
+                if (item.detention) {
+                    badges += `<span class="badge bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"><i class="fa-solid fa-handcuffs"></i> Затримання ст. 262</span> `;
+                }
+                if (item.presence) {
+                    badges += `<span class="badge bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"><i class="fa-solid fa-user-check"></i> Обов. присутність</span> `;
+                }
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <span class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">КУпАП</span>
+                                <h3 class="text-xl font-extrabold text-police-700 dark:text-blue-300">Стаття ${item.article} ${item.part ? `<span class="text-sm font-normal text-gray-500">(ч. ${item.part})</span>` : ''}</h3>
+                            </div>
+                            <span class="badge ${item.judge.includes('Суд') ? 'bg-red-100 text-red-700 dark:bg-red-900/60 dark:text-red-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300'}">
+                                ${item.judge}
+                            </span>
+                        </div>
+
+                        <div class="flex flex-wrap gap-1 mb-3">${badges}</div>
+
+                        <p class="text-sm text-gray-700 dark:text-gray-300 mb-4 line-clamp-3 leading-relaxed font-medium">
+                            ${item.fabula}
+                        </p>
+                    </div>
+
+                    <div class="pt-3 border-t border-gray-100 dark:border-gray-700 text-xs space-y-2">
+                        <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                            <span><i class="fa-regular fa-file-lines text-blue-500"></i> Процес:</span>
+                            <span class="font-semibold text-gray-900 dark:text-gray-200">${item.protocol ? 'Протокол' : ''} ${item.protocol && item.postanova ? '+' : ''} ${item.postanova ? 'Постанова' : ''} ${!item.protocol && !item.postanova ? '-' : ''}</span>
+                        </div>
+                        <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                            <span><i class="fa-regular fa-clock text-amber-500"></i> Строк розгляду (ст. 277):</span>
+                            <span class="font-bold text-amber-600 dark:text-amber-400">${item.term}</span>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700/60 p-2.5 rounded-lg border border-gray-100 dark:border-gray-600">
+                            <span class="font-bold text-gray-700 dark:text-gray-300 block mb-1"><i class="fa-solid fa-gavel text-red-500"></i> Санкція:</span>
+                            <p class="text-xs text-red-700 dark:text-red-300 font-medium">${item.sanction || 'Не вказано'}</p>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Рендер карток Загальної частини
+        function renderGeneral(data) {
+            const grid = document.getElementById('generalGrid');
+            grid.innerHTML = '';
+
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-gray-800 rounded-xl shadow p-4 border-l-4 border-blue-600 dark:border-blue-400 flex flex-col justify-between";
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">ст. ${item.article}</span>
+                            <h4 class="font-bold text-base text-gray-900 dark:text-white">${item.title}</h4>
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                            ${item.note}
+                        </p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Фільтрація карток Особливої частини
+        function filterOffenses() {
+            const query = document.getElementById('offenseSearch').value.toLowerCase();
+
+            const filtered = offensesData.filter(item => {
+                const matchesQuery = item.article.toLowerCase().includes(query) ||
+                                     item.fabula.toLowerCase().includes(query) ||
+                                     item.sanction.toLowerCase().includes(query) ||
+                                     item.judge.toLowerCase().includes(query);
+
+                if (!matchesQuery) return false;
+
+                if (currentFilter === 'detention') return item.detention;
+                if (currentFilter === 'court') return item.judge.toLowerCase().includes('суд');
+                if (currentFilter === 'commission') return item.judge.toLowerCase().includes('адмінкомісія');
+                if (currentFilter === 'presence') return item.presence;
+
+                return true;
+            });
+
+            renderOffenses(filtered);
+        }
+
+        function setFilter(filterType) {
+            currentFilter = filterType;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = "filter-btn px-3 py-1.5 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-gray-800 dark:text-gray-200";
+            });
+            event.target.className = "filter-btn px-3 py-1.5 rounded-md bg-blue-600 text-white font-medium";
+            filterOffenses();
+        }
+
+        // Фільтрація Загальної частини
+        function filterGeneral() {
+            const query = document.getElementById('generalSearch').value.toLowerCase();
+            const filtered = generalData.filter(item => {
+                return item.article.toLowerCase().includes(query) ||
+                       item.title.toLowerCase().includes(query) ||
+                       item.note.toLowerCase().includes(query);
+            });
+            renderGeneral(filtered);
+        }
+
+        // Перемикання вкладок
+        function switchTab(tab) {
+            if (tab === 'offenses') {
+                document.getElementById('sectionOffenses').classList.remove('hidden');
+                document.getElementById('sectionGeneral').classList.add('hidden');
+                document.getElementById('tabOffensesBtn').className = "py-2.5 px-4 text-sm md:text-base font-medium flex items-center gap-2 tab-active transition";
+                document.getElementById('tabGeneralBtn').className = "py-2.5 px-4 text-sm md:text-base font-medium flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 transition";
+            } else {
+                document.getElementById('sectionOffenses').classList.add('hidden');
+                document.getElementById('sectionGeneral').classList.remove('hidden');
+                document.getElementById('tabGeneralBtn').className = "py-2.5 px-4 text-sm md:text-base font-medium flex items-center gap-2 tab-active transition";
+                document.getElementById('tabOffensesBtn').className = "py-2.5 px-4 text-sm md:text-base font-medium flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 transition";
+            }
+        }
+
+        // Перемикач темної теми
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            if (document.documentElement.classList.contains('dark')) {
+                themeIcon.className = 'fa-solid fa-sun text-lg';
+            } else {
+                themeIcon.className = 'fa-solid fa-moon text-lg';
+            }
+        });
+
+        // Ініціалізація при старті
+        renderOffenses(offensesData);
+        renderGeneral(generalData);
+    </script>
+</body>
+</html>
